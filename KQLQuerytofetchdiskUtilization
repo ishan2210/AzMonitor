@@ -1,0 +1,8 @@
+InsightsMetrics
+| where Namespace == "LogicalDisk" and Name == "FreeSpacePercentage"
+| extend DiskName = tostring(parse_json(Tags)["disk"]), 
+         Computer = tostring(parse_json(Tags)["Computer"])
+| extend UsedSpacePercent = 100 - Val  // Calculate used space percentage
+| where UsedSpacePercent >= 80  // Filter disks exceeding 80% usage
+| project TimeGenerated, Computer, DiskName, UsedSpacePercent
+| order by TimeGenerated desc
