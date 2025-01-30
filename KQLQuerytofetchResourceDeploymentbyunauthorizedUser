@@ -1,0 +1,6 @@
+// Show logs from AzureActivity table 
+// Filters for the specific operation MICROSOFT.RESOURCES/DEPLOYMENTS/WRITE
+AzureActivity
+| where OperationNameValue == "MICROSOFT.RESOURCES/DEPLOYMENTS/WRITE"
+| where Caller !in ('hemanth@arvindfashions.com', 'ambrish@arvindfashions.com', 'ramesh@arvindfashions.com')
+| top 10 by TimeGenerated desc
