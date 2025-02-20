@@ -1,0 +1,38 @@
+Steps to Enable Windows Service Monitoring in DCR
+Go to Azure Portal → Monitor → Data Collection Rules (DCR).
+Select the DCR linked to your Log Analytics workspace.
+Navigate to Windows Event Logs → Click Add a Data Source.
+
+Add the following event log
+Microsoft-Windows-Services/Operational
+
+Click Save & Apply.
+Wait 15-30 minutes for new data to be collected.
+-----------------------------------------------------
+Run KQL Query to Fetch OpenSSH Service Status
+Event
+| where TimeGenerated > ago(24h)  // Adjust time range as needed
+| where Source == "Service Control Manager"
+| where EventID == 7036  // Event 7036 logs service status changes
+| where RenderedDescription contains "OpenSSH Authentication Agent"
+   or RenderedDescription contains "OpenSSH SSH Server"
+| project TimeGenerated, Computer, EventID, RenderedDescription
+| order by TimeGenerated desc
+
+----------------------------------------------------------------
+Query to Fetch Only Stopped State
+Event
+| where TimeGenerated > ago(24h)
+| where Source == "Service Control Manager"
+| where EventID == 7036
+| where RenderedDescription contains "OpenSSH" and RenderedDescription contains "stopped"
+| project TimeGenerated, Computer, EventID, RenderedDescription
+| order by TimeGenerated desc
+-----------------------------------------------------------------------------------------------
+Verify If OpenSSH Service Is Being Logged
+
+Event
+| where TimeGenerated > ago(24h)
+| where RenderedDescription contains "OpenSSH"
+| project TimeGenerated, Computer, RenderedDescription
+| order by TimeGenerated desc
