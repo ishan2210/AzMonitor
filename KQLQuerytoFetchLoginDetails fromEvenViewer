@@ -1,0 +1,13 @@
+Event
+| where TimeGenerated > ago(730h)  // Adjust time range as needed
+| where EventID in (4624, 4634, 4647, 4672, 4625)  // Fetch only required events
+| extend EventType = case(
+    EventID == 4624, "Successful Logon",
+    EventID == 4634, "Logoff (Session Ended)",
+    EventID == 4647, "User-Initiated Logoff",
+    EventID == 4672, "Special Logon (Admin Login)",
+    EventID == 4625, "Failed Logon",
+    "Unknown Event"
+)
+| project TimeGenerated, Computer, Account = EventID, EventType
+| order by TimeGenerated desc
