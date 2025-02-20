@@ -1,7 +1,26 @@
+Below KQL Query is for to Fetch Disk under the Virtual Machines 
+Perf
+| where TimeGenerated > ago(24h)
+| where ObjectName == "LogicalDisk" and CounterName == "% Free Space"
+| summarize count() by InstanceName
+---------------------------------------------------------------------------------
+Below KQL Query for Fetching Free Disk space for Specific Disks
+
 Perf
 | where ObjectName == "LogicalDisk" or // Windows
         ObjectName == "Logical Disk"  // Linux
 | where CounterName == "Free Megabytes"
+| where InstanceName == "C:"
 | summarize arg_max(TimeGenerated, *) by InstanceName
 | extend FreeSpaceGB = CounterValue / 1024  // Convert MB to GB
 | project TimeGenerated, InstanceName, FreeSpaceGB, Computer, _ResourceId
+
+-------------------------------------------------------------------------
+Below KQL Query is to fetch Free Disk Percentage of specific Disk 
+Perf
+| where TimeGenerated > ago(24h)
+| where ObjectName == "LogicalDisk" and CounterName == "% Free Space"
+| where InstanceName == "C:"  // Change to desired drive
+| project TimeGenerated, Computer, InstanceName, FreeSpacePercent = CounterValue
+| extend UsedSpacePercent = 100 - FreeSpacePercent
+| order by TimeGenerated desc
