@@ -5,6 +5,10 @@ Perf
 | summarize count() by InstanceName
 ---------------------------------------------------------------------------------
 Below KQL Query for Fetching Free Disk space for Specific Disks
+For running below query you need to add the parameter: \LogicalDisk(*)\Free Megabytes
+under the DCR associated with the LA WS under WS go to Configuration--> Datasources
+click on performance counter click on custom and add the parameter click on save.
+
 
 Perf
 | where ObjectName == "LogicalDisk" or // Windows
@@ -17,6 +21,11 @@ Perf
 
 -------------------------------------------------------------------------
 Below KQL Query is to fetch Free Disk Percentage of specific Disk 
+For running below query you need to add the parameter: \LogicalDisk(*)\% Free Space
+under the DCR associated with the LA WS under WS go to Configuration--> Datasources
+click on performance counter click on custom and add the parameter click on save.
+
+
 Perf
 | where TimeGenerated > ago(24h)
 | where ObjectName == "LogicalDisk" and CounterName == "% Free Space"
