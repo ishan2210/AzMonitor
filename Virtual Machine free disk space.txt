@@ -1,0 +1,9 @@
+// Virtual Machine free disk space in GB
+// Show the latest report of free disk space, per instance.
+Perf
+| where ObjectName == "LogicalDisk" or // Windows
+        ObjectName == "Logical Disk"  // Linux
+| where CounterName == "Free Megabytes"
+| summarize arg_max(TimeGenerated, *) by InstanceName
+| extend FreeSpaceGB = CounterValue / 1024  // Convert MB to GB
+| project TimeGenerated, InstanceName, FreeSpaceGB, Computer, _ResourceId
