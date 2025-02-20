@@ -1,5 +1,3 @@
-// Virtual Machine free disk space in GB
-// Show the latest report of free disk space, per instance.
 Perf
 | where ObjectName == "LogicalDisk" or // Windows
         ObjectName == "Logical Disk"  // Linux
