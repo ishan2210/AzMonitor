@@ -1,0 +1,19 @@
+Logs by URL and URL Request Count
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.CDN" and Category == "FrontDoorAccessLog"
+| summarize UserRequestCount = count() by requestUri_s
+| order by UserRequestCount
+| limit 10
+-------------------------------------------------------------------------------------
+Fetch Request count by Route
+
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.CDN" and Category == "FrontDoorAccessLog"
+| summarize RequestCount = count() by bin(TimeGenerated, 1m), Resource, RouteName = routingRuleName_s, originName = originName_s, ResourceId
+----------------------------------------------------------------------------------------
+Fetch Request based on IP
+
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.CDN" and Category == "FrontDoorAccessLog"
+| summarize RequestCount = count() by clientIp_s, clientCountry_s, requestUri_s, host_s, TimeGenerated
+| order by RequestCount desc
