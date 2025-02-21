@@ -17,3 +17,12 @@ AzureDiagnostics
 | where ResourceProvider == "MICROSOFT.CDN" and Category == "FrontDoorAccessLog"
 | summarize RequestCount = count() by clientIp_s, clientCountry_s, requestUri_s, host_s, TimeGenerated
 | order by RequestCount desc
+-------------------------------------------------------------------------------------------
+Filter Rquest Base on specific Country
+
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.CDN" and Category == "FrontDoorAccessLog"
+| summarize RequestCount = count() by clientIp_s, clientCountry_s, requestUri_s, host_s, TimeGenerated
+| where clientCountry_s == "India"
+| order by RequestCount desc
+
