@@ -1,0 +1,19 @@
+#This script will authentication azure VM and Execute the Powershellscript residing under the Local VM 
+
+Write-Output "Connecting to azure via Connect-AzAccount -Identity"
+Connect-AzAccount -Identity 
+Write-Output "Successfully connected with Automation account's Managed Identity"
+
+# Script which should run inside the Azure VMs (Edit this)
+$scriptCode = '<PASTE CODE HERE>'
+
+#Get all Azure VMs which are in running state and are running Windows
+$myAzureVMs = Get-AzVM -status | Where-Object {$_.PowerState -eq "VM running" -and $_.StorageProfile.OSDisk.OSType -eq "Windows"}
+Write-Output "The following VMs are running and are running Windows:" 
+Write-Output $myAzureVMs.Name 
+
+# Run the script against all the listed VMs
+Write-Output "Run Script Against Machines"
+$myAzureVMs | ForEach-Object { 
+	Invoke-AzVMRunCommand -ResourceGroupName $_.ResourceGroupName -Name $_.Name -CommandId 'RunPowerShellScript' -ScriptString $scriptCode
+}
