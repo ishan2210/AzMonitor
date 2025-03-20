@@ -1,0 +1,71 @@
+# Define Variables
+$TenantID = "Enter your Tenant ID"
+$ClientID = "Enter your Client ID"
+$ClientSecret = "Enter client secret"
+$ServiceName = "sshd"
+$RecipientEmail = "admin@test.onmicrosoft.com"
+$SenderEmail = "admin@test.onmicrosoft.com"
+
+# Get Access Token
+$TokenResponse = Invoke-RestMethod -Uri "https://login.microsoftonline.com/$TenantID/oauth2/v2.0/token" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{
+    grant_type    = "client_credentials"
+    client_id     = $ClientID
+    client_secret = $ClientSecret
+    scope         = "https://graph.microsoft.com/.default"
+}
+
+$AccessToken = $TokenResponse.access_token
+
+# Check SSH Service Status
+$ServiceStatus = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+
+if ($ServiceStatus -eq $null) {
+    Write-Host "Service $ServiceName not found. Exiting."
+    exit
+}
+
+if ($ServiceStatus.Status -eq "Stopped") {
+    # Restart SSH Service
+    Restart-Service -Name $ServiceName -Force
+    Start-Sleep -Seconds 5  
+    $NewStatus = Get-Service -Name $ServiceName
+
+    # Corrected Email Body JSON
+    $EmailBody = @"
+{
+    "message": {
+        "subject": " Alert: SFTP Service Found in Stopped State",
+        "body": {
+            "contentType": "HTML",
+            "content": "<h2>VM NAME: Secops-LAB-VM</h2>
+                        <p>The SFTP service <b>$ServiceName</b> was found in <b>Stopped</b> state.</p>
+                        <p>The Service has been Restarted. Please check.</p>"
+        },
+        "toRecipients": [
+            {
+                "emailAddress": {
+                    "address": "$RecipientEmail"
+                }
+            }
+        ]
+    }
+}
+"@
+
+    # API Endpoint (Use 'users/{email}' for service principal)
+    $GraphUri = "https://graph.microsoft.com/v1.0/users/$SenderEmail/sendMail"
+
+    # Headers
+    $Headers = @{
+        "Authorization" = "Bearer $AccessToken"
+        "Content-Type"  = "application/json"
+        "Accept"        = "application/json"
+    }
+
+    # Send Email
+    Invoke-RestMethod -Uri $GraphUri -Headers $Headers -Method Post -Body $EmailBody
+
+    Write-Host "Service was stopped and restarted. Email sent to $RecipientEmail."
+} else {
+    Write-Host "Service $ServiceName is already running. No action needed."
+}

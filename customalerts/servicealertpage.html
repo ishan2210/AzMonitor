@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #0078D4; /* Azure Blue Border */
+        }
+
+        .header {
+            text-align: center;
+            padding: 10px 0;
+            margin-left: 40px;
+        }
+
+        .header img {
+            width: 150px;
+            /* Adjust Azure logo size */
+        }
+
+        .alert {
+            color: #d9534f;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .content {
+            padding: 15px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: #0078D4;
+            font-weight: bold;
+        }
+
+        .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    padding-top: 10px;
+}
+
+.footer p {
+    margin: 0;
+}
+
+.footer img {
+    display: block;
+    margin: 10px auto; /* Centers the image */
+    max-width: 150px; /* Adjust size as needed */
+}
+
+        
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://www.atqor.com/media/4rbg4j3o/logo-atqor.png" alt="Microsoft Azure Logo">
+        </div>
+        
+        <p class="alert"> SFTP Service Alert</p>
+
+        <div class="content">
+            <p><strong>VM Name:</strong> <span class="highlight">Secops-LAB-VM</span></p>
+            <p><strong>IP Address:</strong> <span class="highlight">10.0.0.4</span></p>
+            <p>The SFTP service <strong>$ServiceName</strong> was found in <strong>Stopped</strong> state.</p>
+            <p>The Service has been <span class="highlight">Restarted</span>. Please check.</p>
+        </div>
+
+        <div class="footer">
+            <p>Microsoft Azure | atQor </p>
+            <img class="img" src="https://www.atqor.com/media/qkhbzliv/microsoftsolutionspartner-msinfrastructureazure.png" alt="Microsoft Azure Logo">
+        </div>
+    </div>
+</body>
+</html>

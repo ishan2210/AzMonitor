@@ -1,0 +1,109 @@
+# Microsoft Graph API Authentication Details
+$TenantID = "Enter your Tenant ID"
+$ClientID = "Enter your Client ID"
+$ClientSecret = "Enter client secret"
+$RecipientEmail = "admin@test.onmicrosoft.com"
+$SenderEmail = "admin@test.onmicrosoft.com"
+
+# Get OAuth Token for Microsoft Graph API
+$body = @{
+    grant_type    = "client_credentials"
+    client_id     = $clientId
+    client_secret = $clientSecret
+    scope         = "https://graph.microsoft.com/.default"
+} 
+$tokenResponse = Invoke-RestMethod -Uri "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token" -Method Post -Body $body
+$accessToken = $tokenResponse.access_token
+
+# Get Disk Utilization
+$diskUsage = Get-PSDrive -PSProvider FileSystem | ForEach-Object {
+    $UsedSpace = [math]::Round(($_.Used / 1GB), 2)
+    $FreeSpace = [math]::Round(($_.Free / 1GB), 2)
+    $TotalSize = [math]::Round(($_.Used + $_.Free) / 1GB, 2)
+    $UsagePercent = [math]::Round(($UsedSpace / $TotalSize) * 100, 2)
+
+    "<tr>
+        <td>$($_.Name)</td>
+        <td>$UsedSpace GB</td>
+        <td>$FreeSpace GB</td>
+        <td>$TotalSize GB</td>
+        <td>$UsagePercent%</td>
+    </tr>"
+}
+
+# Check SSH Service Status
+$sshService = Get-Service -Name "sshd" -ErrorAction SilentlyContinue
+$sshStatus = if ($sshService.Status -eq "Running") { "Running" } else { "Stopped" }
+
+# Get CPU Usage (24-Hour Average)
+$cpuSamples = @()
+for ($i = 1; $i -le 24; $i++) {
+    $cpuSamples += (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
+    Start-Sleep -Seconds 3600  # Wait for an hour before taking the next sample
+}
+$cpuUsageAvg = [math]::Round(($cpuSamples | Measure-Object -Average).Average, 2)
+
+# Get Memory Usage (24-Hour Average)
+$memSamples = @()
+for ($i = 1; $i -le 24; $i++) {
+    $memSamples += (Get-Counter '\Memory\% Committed Bytes In Use').CounterSamples.CookedValue
+    Start-Sleep -Seconds 3600  # Wait for an hour before taking the next sample
+}
+$memUsageAvg = [math]::Round(($memSamples | Measure-Object -Average).Average, 2)
+
+# Generate HTML Report
+$htmlBody = @"
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 100%; max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background-color: #f4f4f4; }
+        .title { text-align: center; font-size: 20px; font-weight: bold; color: #d9534f; }
+        .content { font-size: 14px; color: #333; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .table th { background-color: #0078D4; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p class="title">System Health Report - Last 24 Hours</p>
+        <div class="content">
+            <p><strong>SSH Service Status:</strong> $sshStatus</p>
+            <p><strong>CPU Usage (24-Hour Avg):</strong> $cpuUsageAvg%</p>
+            <p><strong>Memory Usage (24-Hour Avg):</strong> $memUsageAvg%</p>
+
+            <p><strong>Disk Utilization:</strong></p>
+            <table class="table">
+                <tr>
+                    <th>Drive</th>
+                    <th>Used Space (GB)</th>
+                    <th>Free Space (GB)</th>
+                    <th>Total Size (GB)</th>
+                    <th>Usage (%)</th>
+                </tr>
+                $diskUsage
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+"@
+
+# Send Email via Microsoft Graph API
+$mailBody = @{
+    message = @{
+        subject = "System Health Report - Last 24 Hours"
+        body = @{
+            contentType = "HTML"
+            content = $htmlBody
+        }
+        toRecipients = @(@{ emailAddress = @{ address = $RecipientEmail } })
+    }
+} | ConvertTo-Json -Depth 10
+
+Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/users/$SenderEmail/sendMail" `
+    -Headers @{ Authorization = "Bearer $accessToken"; "Content-Type" = "application/json" } `
+    -Method Post -Body $mailBody
+
+Write-Output "System health report sent to $RecipientEmail"
