@@ -27,9 +27,10 @@ click on performance counter click on custom and add the parameter click on save
 
 
 Perf
-| where TimeGenerated > ago(24h)
+| where TimeGenerated > ago(1h)
 | where ObjectName == "LogicalDisk" and CounterName == "% Free Space"
-| where InstanceName == "C:"  // Change to desired drive
-| project TimeGenerated, Computer, InstanceName, FreeSpacePercent = CounterValue
-| extend UsedSpacePercent = 100 - FreeSpacePercent
-| order by TimeGenerated desc
+| where InstanceName == "C:"
+| summarize MinFreeSpace = min(CounterValue) by Computer
+| extend UsedSpacePercent = 100 - MinFreeSpace
+| project Computer, InstanceName = "C:", FreeSpacePercent = MinFreeSpace, UsedSpacePercent
+
