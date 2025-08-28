@@ -1,3 +1,7 @@
+Security!*[System[(band(Keywords,13510798882111488))]]
+Security!*[System[(EventID=4624 or EventID=4634 or EventID=4647 or EventID=4672 or EventID=4625)]]
+--------------------------------------------------------------------------------------------
+
 Event
 | where TimeGenerated > ago(730h)  // Adjust time range as needed
 | where EventID in (4624, 4634, 4647, 4672, 4625)  // Fetch only required events
